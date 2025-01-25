@@ -155,6 +155,7 @@ target_include_directories(Game PRIVATE
 	${ENGINE_INCLUDE_DIR}/graphics/shapes
 	${ENGINE_INCLUDE_DIR}/physics
 	${ENGINE_INCLUDE_DIR}/utils
+	${ENGINE_INCLUDE_DIR}/game
 	
 	# External libraries
 	${EXT_ASSIMP_DIR}

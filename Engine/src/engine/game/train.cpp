@@ -3,19 +3,10 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#pragma once
+//engine
+#include "train.hpp"
 
-#include <string>
-
-using std::string;
-
-namespace Core
+namespace Game
 {
-	class Game
-	{
-	public:
-		static void Initialize(const string& version);
-		static void Run();
-		static void HandleInput();
-	};
+
 }

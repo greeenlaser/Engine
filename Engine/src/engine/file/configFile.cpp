@@ -233,11 +233,11 @@ namespace EngineFile
 		keys.push_back("limit_camera");
 			values.push_back("1");
 		keys.push_back("camXLimit");
-			values.push_back("5");
+			values.push_back("2.25");
 		keys.push_back("camYLimit");
-			values.push_back("2");
+			values.push_back("1.75");
 		keys.push_back("camZLimit");
-			values.push_back("8");
+			values.push_back("5");
 
 #if ENGINE_MODE
 		/*

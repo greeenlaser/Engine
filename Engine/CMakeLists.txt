@@ -164,6 +164,7 @@ target_include_directories(Elypso_engine PRIVATE
     ${ENGINE_INCLUDE_DIR}/graphics/shapes
     ${ENGINE_INCLUDE_DIR}/physics
     ${ENGINE_INCLUDE_DIR}/utils
+	${ENGINE_INCLUDE_DIR}/game
 	${EXT_ASSIMP_DIR}
     ${EXT_GLFW_DIR}
     ${EXT_GLAD_DIR}

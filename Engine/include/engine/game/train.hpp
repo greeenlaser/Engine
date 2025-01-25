@@ -5,17 +5,10 @@
 
 #pragma once
 
-#include <string>
-
-using std::string;
-
-namespace Core
+namespace Game
 {
-	class Game
+	class Train
 	{
-	public:
-		static void Initialize(const string& version);
-		static void Run();
-		static void HandleInput();
+
 	};
 }

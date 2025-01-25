@@ -281,7 +281,7 @@ namespace EngineFile
 				// WRITE ALL DATA INTO NEW TXT FILE
 				//
 
-				string folderPath = (path(Engine::scenePath).parent_path() / objectName).string();
+				string folderPath = (path(Engine::scenePath).parent_path() / "gameobjects" / objectName).string();
 				if (!exists(folderPath))
 				{
 					File::CreateNewFolder(folderPath);

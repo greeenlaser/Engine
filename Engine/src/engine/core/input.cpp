@@ -36,6 +36,7 @@
 #include "materialcomponent.hpp"
 #include "lightcomponent.hpp"
 #include "audioplayercomponent.hpp"
+#include "crane.hpp"
 #if ENGINE_MODE
 #include "compile.hpp"
 #endif
@@ -47,6 +48,7 @@ using glm::lookAt;
 using glm::quat;
 using glm::rotate;
 using glm::mat4;
+using glm::length;
 using std::ostringstream;
 using std::fixed;
 using std::setprecision;
@@ -76,6 +78,7 @@ using Graphics::Components::MeshComponent;
 using Graphics::Components::MaterialComponent;
 using Graphics::Components::LightComponent;
 using Graphics::Components::AudioPlayerComponent;
+using Game::Crane;
 #if ENGINE_MODE
 using Core::Compilation;
 #endif
@@ -245,15 +248,6 @@ namespace Core
             {
                 Compilation::Run();
             }
-
-            //save current scene
-            if (key == GLFW_KEY_S
-                && mods == GLFW_MOD_CONTROL
-                && action == GLFW_PRESS)
-            {
-                SceneFile::SaveScene();
-                ConfigFile::SaveConfigFile();
-            }
         }
 #else
         if (!Render::camera.cameraEnabled)
@@ -275,6 +269,96 @@ namespace Core
             }
         }
 #endif
+
+        //save current scene
+        if (key == GLFW_KEY_S
+            && mods == GLFW_MOD_CONTROL
+            && action == GLFW_PRESS)
+        {
+            SceneFile::SaveScene();
+            ConfigFile::SaveConfigFile();
+        }
+
+        //activate crane
+        if (key == GLFW_KEY_E
+            && action == GLFW_PRESS
+            && !Crane::isCraneActivated
+            && Crane::crane != nullptr
+            && Crane::craneController != nullptr)
+        {
+            //calculate the distance between crane and camera
+            vec3 cameraPos = Render::camera.GetCameraPosition();
+            vec3 craneControllerPos = Crane::craneController->GetTransform()->GetPosition();
+            float distance = length(cameraPos - craneControllerPos);
+
+            //if distance is less than 1 then crane can be "entered"
+            if (distance < 1.75f)
+            {
+                Crane::EnterCrane();
+
+                cout << "!!!!!!!!!! activated crane!\n";
+            }
+            else
+            {
+                cout << "!!!!!!!!!! not in range of crane (" << to_string(distance) << ")!\n";
+            }
+        }
+
+        //move crane front
+        if (key == GLFW_KEY_W
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated
+            && !Crane::isCraneMovingY
+            && !Crane::isCraneMovingXZ)
+        {
+            Crane::StartCraneMove(vec3(0.0f, 0.0f, 2.0f));
+        }
+        //move crane back
+        if (key == GLFW_KEY_S
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated
+            && !Crane::isCraneMovingY
+            && !Crane::isCraneMovingXZ)
+        {
+            Crane::StartCraneMove(vec3(0.0f, 0.0f, -2.0f));
+        }
+        //move crane left
+        if (key == GLFW_KEY_A
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated
+            && !Crane::isCraneMovingY
+            && !Crane::isCraneMovingXZ)
+        {
+            Crane::StartCraneMove(vec3(2.0f, 0.0f, 0.0f));
+        }
+        //move crane right
+        if (key == GLFW_KEY_D
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated
+            && !Crane::isCraneMovingY
+            && !Crane::isCraneMovingXZ)
+        {
+            Crane::StartCraneMove(vec3(-2.0f, 0.0f, 0.0f));
+        }
+
+        //grab barrel
+        if (key == GLFW_KEY_SPACE
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated
+            && !Crane::isCraneMovingY
+            && !Crane::isCraneMovingXZ)
+        {
+            Crane::StartBarrelGrab();
+        }
+
+        //deactivate crane
+        if (key == GLFW_KEY_TAB
+            && action == GLFW_PRESS
+            && Crane::isCraneActivated)
+        {
+            Crane::ExitCrane();
+            cout << "!!!!!!!!!! deactivated crane!\n";
+        }
     }
 
     void Input::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -643,6 +727,7 @@ namespace Core
         {
             glfwSetInputMode(Render::window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         }
+#if ENGINE_MODE
         if (glfwGetMouseButton(Render::window, GLFW_MOUSE_BUTTON_RIGHT)) 
         {
             glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -651,6 +736,16 @@ namespace Core
         {
             glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
+#else
+        if (glfwGetWindowAttrib(Render::window, GLFW_FOCUSED))
+        {
+            glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+        else
+        {
+            glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+#endif
 
 #if ENGINE_MODE
         Render::camera.cameraEnabled = ImGui::IsMouseDown(ImGuiMouseButton_Right);
@@ -724,6 +819,7 @@ namespace Core
 
     void Input::MoveCamera()
     {
+#if ENGINE_MODE
         if (Render::camera.cameraEnabled
             && !startedHolding)
         {
@@ -739,6 +835,9 @@ namespace Core
             Camera::lastKnownRotation = Render::camera.GetCameraRotation();
             startedHolding = false;
         }
+#else
+        Render::camera.cameraEnabled = true;
+#endif
 
         if (Render::camera.cameraEnabled)
         {
@@ -764,9 +863,12 @@ namespace Core
             if (glfwGetKey(Render::window, GLFW_KEY_W) == GLFW_PRESS)
 #endif
             {
-                Render::camera.SetCameraPosition(
-                    Render::camera.GetCameraPosition()
-                    + Render::camera.cameraSpeed * currentSpeed * front);
+                if (!Crane::isCraneActivated)
+                {
+                    Render::camera.SetCameraPosition(
+                        Render::camera.GetCameraPosition()
+                        + Render::camera.cameraSpeed * currentSpeed * front);
+                }
 
                 if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
             }
@@ -777,11 +879,14 @@ namespace Core
             if (glfwGetKey(Render::window, GLFW_KEY_S) == GLFW_PRESS)
 #endif
             {
-                Render::camera.SetCameraPosition(
-                    Render::camera.GetCameraPosition()
-                    - Render::camera.cameraSpeed * currentSpeed * front);
+                if (!Crane::isCraneActivated)
+                {
+                    Render::camera.SetCameraPosition(
+                        Render::camera.GetCameraPosition()
+                        - Render::camera.cameraSpeed * currentSpeed * front);
 
-                if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                    if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                }
             }
             //camera left
 #if ENGINE_MODE
@@ -790,11 +895,14 @@ namespace Core
             if (glfwGetKey(Render::window, GLFW_KEY_A) == GLFW_PRESS)
 #endif
             {
-                Render::camera.SetCameraPosition(
-                    Render::camera.GetCameraPosition()
-                    - Render::camera.cameraSpeed * currentSpeed * right);
+                if (!Crane::isCraneActivated)
+                {
+                    Render::camera.SetCameraPosition(
+                        Render::camera.GetCameraPosition()
+                        - Render::camera.cameraSpeed * currentSpeed * right);
 
-                if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                    if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                }
             }
             //camera right
 #if ENGINE_MODE
@@ -803,11 +911,14 @@ namespace Core
             if (glfwGetKey(Render::window, GLFW_KEY_D) == GLFW_PRESS)
 #endif
             {
-                Render::camera.SetCameraPosition(
-                    Render::camera.GetCameraPosition()
-                    + Render::camera.cameraSpeed * currentSpeed * right);
+                if (!Crane::isCraneActivated)
+                {
+                    Render::camera.SetCameraPosition(
+                        Render::camera.GetCameraPosition()
+                        + Render::camera.cameraSpeed * currentSpeed * right);
 
-                if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                    if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                }
             }
             //camera up
 #if ENGINE_MODE
@@ -816,11 +927,14 @@ namespace Core
             if (glfwGetKey(Render::window, GLFW_KEY_E) == GLFW_PRESS)
 #endif
             {
-                Render::camera.SetCameraPosition(
-                    Render::camera.GetCameraPosition()
-                    + Render::camera.GetUp() * Render::camera.cameraSpeed * currentSpeed);
+                if (!Crane::isCraneActivated)
+                {
+                    Render::camera.SetCameraPosition(
+                        Render::camera.GetCameraPosition()
+                        + Render::camera.GetUp() * Render::camera.cameraSpeed * currentSpeed);
 
-                if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                    if (!SceneFile::unsavedChanges) Render::SetWindowNameAsUnsaved(true);
+                }
             }
             //camera down
 #if ENGINE_MODE
