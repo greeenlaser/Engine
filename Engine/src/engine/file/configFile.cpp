@@ -237,7 +237,7 @@ namespace EngineFile
 		keys.push_back("camYLimit");
 			values.push_back("2");
 		keys.push_back("camZLimit");
-			values.push_back("12");
+			values.push_back("8");
 
 #if ENGINE_MODE
 		/*
