@@ -230,6 +230,15 @@ namespace EngineFile
 		keys.clear();
 		values.clear();
 
+		keys.push_back("limit_camera");
+			values.push_back("1");
+		keys.push_back("camXLimit");
+			values.push_back("5");
+		keys.push_back("camYLimit");
+			values.push_back("2");
+		keys.push_back("camZLimit");
+			values.push_back("12");
+
 #if ENGINE_MODE
 		/*
 		* 
@@ -281,7 +290,6 @@ namespace EngineFile
 #endif
 		keys.push_back("gui_console");
 			values.push_back("1");
-
 
 		ofstream configFile(configFilePath);
 

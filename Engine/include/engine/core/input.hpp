@@ -45,6 +45,11 @@ namespace Core
         static void Copy();
         static void Paste();
 
+        /// <summary>
+        /// Hard-coded limit to camera Y height and max positions inside room where game takes place inside of.
+        /// </summary>
+        static void LimitMovement();
+
         static void SceneWindowInput();
         static void ObjectInteraction(float width, float height, double posX, double posY);
         static void DragCamera();

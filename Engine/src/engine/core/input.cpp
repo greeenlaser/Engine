@@ -562,6 +562,28 @@ namespace Core
             "Successfully pasted gameobject '" + copiedObject["name"] + "'!\n");
     }
 
+    void Input::LimitMovement()
+    {
+        bool limitCamera = stoi(ConfigFile::GetValue("limit_camera", true));
+        if (limitCamera)
+        {
+            float camXLimit = stof(ConfigFile::GetValue("camXLimit", true));
+            float camYLimit = stof(ConfigFile::GetValue("camYLimit", true));
+            float camZLimit = stof(ConfigFile::GetValue("camZLimit", true));
+
+            vec3 camPos = Render::camera.GetCameraPosition();
+            if (camPos.y != camYLimit) camPos.y = camYLimit;
+
+            if (camPos.x > camXLimit) camPos.x = camXLimit;
+            if (camPos.x < -camXLimit) camPos.x = -camXLimit;
+            
+            if (camPos.z > camZLimit) camPos.z = camZLimit;
+            if (camPos.z < -camZLimit) camPos.z = -camZLimit;
+
+            Render::camera.SetCameraPosition(camPos);
+        }
+    }
+
     void Input::SceneWindowInput()
     {
         DragCamera();

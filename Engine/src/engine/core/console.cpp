@@ -27,6 +27,7 @@
 #include "meshcomponent.hpp"
 #include "materialcomponent.hpp"
 #include "lightcomponent.hpp"
+#include "configFile.hpp"
 #if ENGINE_MODE
 #include "gui_engine.hpp"
 #endif
@@ -45,6 +46,7 @@ using std::cout;
 using glm::vec3;
 using std::filesystem::path;
 using std::filesystem::current_path;
+using std::to_string;
 
 using Core::Engine;
 using Graphics::Render;
@@ -55,6 +57,7 @@ using Graphics::Components::MeshComponent;
 using Graphics::Components::MaterialComponent;
 using Graphics::Components::LightComponent;
 using Graphics::GUI::GUIConsole;
+using EngineFile::ConfigFile;
 #if ENGINE_MODE
 using Graphics::GUI::EngineGUI;
 #endif
@@ -219,10 +222,10 @@ namespace Core
                 << "qqq - quits the engine\n"
                 << "srm 'int' - sets the render mode (shaded (1), wireframe (2)\n"
                 << "rc - resets the camera back to its original position and rotation\n"
-                << "dbg - prints debug info about selected gameobject (click on object before using this command)"
+                << "lc - toggle limit camera on and off\n"
 #if ENGINE_MODE
 #else
-                << "toggle - enables or disables selected gameobject based on its enabled state (click on object before using this command)"
+                << "toggle - enables or disables selected gameobject based on its enabled state (click on object before using this command)\n"
 #endif
                 ;
 
@@ -253,20 +256,19 @@ namespace Core
                 Type::INFO,
                 "Reset camera position and rotation.\n");
         }
-        else if (cleanedCommands[0] == "dbg"
-                 && cleanedCommands.size() == 1)
+        else if (cleanedCommands[0] == "lc"
+            && cleanedCommands.size() == 1)
         {
-            if (Select::selectedObj == nullptr)
-            {
-                WriteConsoleMessage(
-                    Caller::INPUT,
-                    Type::EXCEPTION,
-                    "Error: Please select a gameobject first before using the 'dbg' command.\n");
-            }
-            else
-            {
-                PrintSelectObjectData();
-            }
+            bool limitCamera = stoi(ConfigFile::GetValue("limit_camera", true));
+
+            limitCamera = !limitCamera;
+            ConfigFile::SetValue("limit_camera", to_string(limitCamera));
+
+            string lcState = limitCamera ? "true" : "false";
+            WriteConsoleMessage(
+                Caller::INPUT,
+                Type::INFO,
+                "Set limit camera to " + lcState + ".\n");
         }
 #if ENGINE_MODE
 #else
@@ -313,84 +315,5 @@ namespace Core
                 Type::EXCEPTION,
                 "Error: '" + command + "' is not a valid command! Use 'help' to list all commands and their valid parameters.\n");
         }
-    }
-
-    void ConsoleManager::PrintSelectObjectData()
-    {
-        shared_ptr<GameObject> obj = Select::selectedObj;
-        auto mesh = obj->GetComponent<MeshComponent>();
-        auto mat = obj->GetComponent<MaterialComponent>();
-
-        stringstream ss;
-
-        ss << "\n--------------------\n"
-            << "name: " << obj->GetName() << "\n"
-            << "id: " << obj->GetID() << "\n"
-            << "is enabled: " << obj->IsEnabled() << "\n"
-
-            << "position: " << obj->GetTransform()->GetPosition().x << ", "
-            << obj->GetTransform()->GetPosition().y << ", "
-            << obj->GetTransform()->GetPosition().z << "\n"
-
-            << "rotation: " << obj->GetTransform()->GetRotation().x << ", "
-            << obj->GetTransform()->GetRotation().y << ", "
-            << obj->GetTransform()->GetRotation().z << "\n"
-
-            << "scale: " << obj->GetTransform()->GetScale().x << ", "
-            << obj->GetTransform()->GetScale().y << ", "
-            << obj->GetTransform()->GetScale().z << "\n"
-
-            << "mesh type: " << magic_enum::enum_name(mesh->GetMeshType()) << "\n"
-            << "--------------------\n";
-
-        if (mesh->GetMeshType() == MeshComponent::MeshType::model)
-        {
-            ss << "model shininess: 32\n";
-        }
-        else if (mesh->GetMeshType() == MeshComponent::MeshType::point_light)
-        {
-            auto light = obj->GetComponent<LightComponent>();
-            ss << "point light diffuse: "
-                << light->GetDiffuse().x << ", "
-                << light->GetDiffuse().y << ", "
-                << light->GetDiffuse().z << "\n"
-
-                << "point light intensity: " << light->GetIntensity() << "\n"
-
-                << "point light distance: " << light->GetDistance() << "\n";
-        }
-        else if (mesh->GetMeshType() == MeshComponent::MeshType::spot_light)
-        {
-            auto light = obj->GetComponent<LightComponent>();
-            ss << "spotlight diffuse: "
-                << light->GetDiffuse().x << ", "
-                << light->GetDiffuse().y << ", "
-                << light->GetDiffuse().z << "\n"
-
-                << "spotlight intensity: " << light->GetIntensity() << "\n"
-
-                << "spotlight distance: " << light->GetDistance() << "\n"
-
-                << "spotlight outer angle: " << light->GetOuterAngle() << "\n"
-
-                << "spotlight inner angle: " << light->GetInnerAngle() << "\n";
-        }
-        else if (mesh->GetMeshType() == MeshComponent::MeshType::directional_light)
-        {
-            auto light = obj->GetComponent<LightComponent>();
-            ss << "directional light diffuse: "
-                << light->GetDiffuse().x << ", "
-                << light->GetDiffuse().y << ", "
-                << light->GetDiffuse().z << "\n"
-
-                << "directional light intensity: " << light->GetIntensity() << "\n";
-        }
-
-        ss << "--------------------\n";
-
-        WriteConsoleMessage(
-            Caller::INPUT,
-            Type::INFO,
-            ss.str());
     }
 }

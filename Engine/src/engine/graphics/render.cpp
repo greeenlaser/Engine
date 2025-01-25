@@ -309,6 +309,7 @@ namespace Graphics
 	{
 		//camera transformation
 		Input::ProcessKeyboardInput(window);
+		Input::LimitMovement();
 
 		//calculate the new projection matrix
 		float fov = stof(ConfigFile::GetValue("camera_fov"));
