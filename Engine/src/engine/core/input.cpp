@@ -727,17 +727,7 @@ namespace Core
         {
             glfwSetInputMode(Render::window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
         }
-#if ENGINE_MODE
-        if (glfwGetMouseButton(Render::window, GLFW_MOUSE_BUTTON_RIGHT)) 
-        {
-            glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
-        else 
-        {
-            glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-#else
-        if (glfwGetWindowAttrib(Render::window, GLFW_FOCUSED))
+        if (glfwGetMouseButton(Render::window, GLFW_MOUSE_BUTTON_RIGHT))
         {
             glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
@@ -745,7 +735,6 @@ namespace Core
         {
             glfwSetInputMode(Render::window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
-#endif
 
 #if ENGINE_MODE
         Render::camera.cameraEnabled = ImGui::IsMouseDown(ImGuiMouseButton_Right);

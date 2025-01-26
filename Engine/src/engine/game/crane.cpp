@@ -23,50 +23,52 @@ using Core::TimeManager;
 
 namespace Game
 {
-	void Crane::LookForCraneAndCraneController()
+	void Crane::LookForObjects()
 	{
-		if (crane == nullptr)
+		const vector<shared_ptr<GameObject>>& objects = GameObjectManager::GetObjects();
+
+		//barrels
+		for (const auto& obj : objects)
 		{
-			const vector<shared_ptr<GameObject>>& objects = GameObjectManager::GetObjects();
-			for (const auto& obj : objects)
+			string name = obj->GetName();
+			if (name.find("barrel_") != string::npos)
 			{
-				string name = obj->GetName();
-				if (name == "crane")
+				if (find(barrels.begin(), barrels.end(), obj) == barrels.end())
 				{
-					crane = obj;
-					crane->GetTransform()->SetPosition(craneStartPos);
-					break;
+					barrels.push_back(obj);
+					cout << "!!!!!!!!!! found barrel: " << obj->GetName() << " !\n";
 				}
 			}
 		}
 
-		if (crane_grab == nullptr)
+		//crane, crane_grab and craneController
+		for (const auto& obj : objects)
 		{
-			const vector<shared_ptr<GameObject>>& objects = GameObjectManager::GetObjects();
-			for (const auto& obj : objects)
+			string name = obj->GetName();
+			if (name == "crane")
 			{
-				string name = obj->GetName();
-				if (name == "crane_grab")
-				{
-					crane_grab = obj;
-					crane_grab->GetTransform()->SetPosition(craneGrabStartPos);
-					break;
-				}
+				crane = obj;
+				crane->GetTransform()->SetPosition(craneStartPos);
+				cout << "!!!!!!!!!! found crane!\n";
+			}
+			if (name == "crane_grab")
+			{
+				crane_grab = obj;
+				crane_grab->GetTransform()->SetPosition(craneGrabStartPos);
+				cout << "!!!!!!!!!! found crane_grab!\n";
+			}
+			if (name == "craneController")
+			{
+				craneController = obj;
+				cout << "!!!!!!!!!! found crane controller!\n";
 			}
 		}
 
-		if (craneController == nullptr)
+		if (crane != nullptr
+			&& crane_grab != nullptr
+			&& craneController != nullptr)
 		{
-			const vector<shared_ptr<GameObject>>& objects = GameObjectManager::GetObjects();
-			for (const auto& obj : objects)
-			{
-				string name = obj->GetName();
-				if (name == "craneController")
-				{
-					craneController = obj;
-					break;
-				}
-			}
+			foundObjects = true;
 		}
 	}
 
@@ -102,6 +104,16 @@ namespace Game
 				//move crane grab towards crane grab target
 				vec3 newCraneGrabPosition = craneGrabOriginPos + direction * speed;
 				crane_grab->GetTransform()->SetPosition(newCraneGrabPosition);
+
+				if (pickedUpBarrel != nullptr)
+				{
+					float barrelY = pickedUpBarrel->GetTransform()->GetPosition().y;
+					vec3 newBarrelPosition = craneOriginPos + direction * speed;
+					pickedUpBarrel->GetTransform()->SetPosition(vec3(
+						newCraneGrabPosition.x,
+						barrelY,
+						newCraneGrabPosition.z));
+				}
 			}
 			else
 			{
@@ -161,6 +173,18 @@ namespace Game
 			}
 			else if (moveCraneUp)
 			{
+				/*
+				if (pickedUpBarrel == nullptr)
+				{
+					auto barrel = GetClosestBarrel();
+					if (barrel != nullptr)
+					{
+						cout << "!!!!!!!!!! picked up barrel: " << barrel->GetName() << " !\n";
+						pickedUpBarrel = barrel;
+					}
+				}
+				*/
+
 				vec3 craneGrabOriginPos = crane_grab->GetTransform()->GetPosition();
 				vec3 craneGrabUpPos = vec3(craneGrabOriginPos.x, craneGrabY, craneGrabOriginPos.z);
 				float upDistance = length(craneGrabOriginPos - craneGrabUpPos);
@@ -177,6 +201,18 @@ namespace Game
 					//move crane grab upwards
 					vec3 newCraneGrabPosition = craneGrabOriginPos + direction * speed;
 					crane_grab->GetTransform()->SetPosition(newCraneGrabPosition);
+
+					/*
+					if (pickedUpBarrel != nullptr)
+					{
+						float barrelY = pickedUpBarrel->GetTransform()->GetPosition().y;
+						vec3 newBarrelPosition = craneGrabOriginPos + direction * speed;
+						pickedUpBarrel->GetTransform()->SetPosition(vec3(
+							newCraneGrabPosition.x,
+							barrelY,
+							newCraneGrabPosition.z));
+					}
+					*/
 				}
 				else
 				{
@@ -190,6 +226,31 @@ namespace Game
 			}
 
 		}
+	}
+
+	shared_ptr<GameObject> Crane::GetClosestBarrel()
+	{
+		/*
+		vec3 craneGrabCurrentPos = crane_grab->GetTransform()->GetPosition();
+		shared_ptr<GameObject> closestBarrel = nullptr;
+		float minDistance{};
+
+		for (const auto& barrel : barrels)
+		{
+			vec3 barrelPos = barrel->GetTransform()->GetPosition();
+			float distance = length(craneGrabCurrentPos - barrelPos);
+
+			if (distance < minDistance)
+			{
+				closestBarrel = barrel;
+
+				cout << "!!!!!!!!!! new closest barrel: " << barrel->GetName() << " !\n";
+
+				minDistance = distance;
+			}
+		}
+		*/
+		return nullptr;
 	}
 
 	void Crane::EnterCrane()

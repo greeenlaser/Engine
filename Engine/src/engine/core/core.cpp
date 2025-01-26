@@ -35,6 +35,7 @@
 #include "gameobject.hpp"
 #include "audio.hpp"
 #include "crane.hpp"
+#include "audioplayercomponent.hpp"
 #if ENGINE_MODE
 #include "gui_engine.hpp"
 #include "gui_settings.hpp"
@@ -66,6 +67,7 @@ using Caller = Core::ConsoleManager::Caller;
 using Type = Core::ConsoleManager::Type;
 using Graphics::Shape::GameObjectManager;
 using Game::Crane;
+using Graphics::Components::AudioPlayerComponent;
 #if ENGINE_MODE
 using Graphics::GUI::EngineGUI;
 using Graphics::GUI::GUISettings;
@@ -700,16 +702,15 @@ namespace Core
 		{
 			TimeManager::UpdateDeltaTime();
 
-			if (Crane::crane == nullptr
-				&& Crane::crane_grab == nullptr
-				&& Crane::craneController == nullptr)
+			if (!Crane::foundObjects)
 			{
-				Crane::LookForCraneAndCraneController();
+				Crane::LookForObjects();
 			}
 			Crane::MoveCrane();
 			Crane::GrabBarrel();
 
 			Render::WindowLoop();
+
 #if DISCORD_MODE
 			RunDiscordRichPresence();
 #endif

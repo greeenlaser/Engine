@@ -6,6 +6,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 //external
 #include "glm.hpp"
@@ -17,27 +18,32 @@ namespace Game
 {
 	using std::shared_ptr;
 	using glm::vec3;
+	using std::vector;
 
 	using Graphics::Shape::GameObject;
 
 	class Crane
 	{
 	public:
+		static inline bool foundObjects;
 		static inline bool isCraneActivated;
 		static inline bool isCraneMovingXZ;
 		static inline bool isCraneMovingY;
 
-		static inline shared_ptr<GameObject> pickedUpObject;
+		static inline shared_ptr<GameObject> pickedUpBarrel;
 		static inline shared_ptr<GameObject> crane;
 		static inline shared_ptr<GameObject> crane_grab;
 		static inline shared_ptr<GameObject> craneController;
 
-		static void LookForCraneAndCraneController();
+		static inline vector<shared_ptr<GameObject>> barrels;
+
+		static void LookForObjects();
 		static void StartCraneMove(const vec3& addedPos);
 		static void MoveCrane();
 
 		static void StartBarrelGrab();
 		static void GrabBarrel();
+		static shared_ptr<GameObject> GetClosestBarrel();
 
 		static void EnterCrane();
 		static void ExitCrane();

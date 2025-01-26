@@ -96,6 +96,7 @@ namespace Core
             Type::INFO,
             "Successfully imported audio file: " + name + "\n");
 
+        Play(name);
         return true;
     }
 
