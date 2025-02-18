@@ -1,0 +1,2 @@
+/usr/bin/ar qc libglad.a "CMakeFiles/glad.dir/home/turdle/elypso/Elypso-engine/_external_shared/Glad/glad.c.o"
+/usr/bin/ranlib libglad.a

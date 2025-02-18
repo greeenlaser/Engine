@@ -1,9 +1,0 @@
-Original repository link:
-https://github.com/jrouwe/JoltPhysics
-
-Changes:
-- used build_release_windows.bat to make Jolt.lib and Jolt.dll and copied them into new empty folder release
-- used build_debug_windows.bat to make Jolt.lib and Jolt.dll and copied them into new empty folder debug
-- used build_release_linux.sh to make libJolt.so and copied it into release folder
-- used build_debug_linux.sh to make libJolt.so and copied it into debug folder
-- copied header files, AABBTree, Core, Geometry, Math, ObjectStream, Physics, Renderer, Skeleton, TriangleGrouper and TriangleSplitter folders to root folder
